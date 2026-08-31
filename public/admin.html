@@ -159,6 +159,32 @@
   
 
   <script>
+
+//FUNCTION FOR POPUP
+ var popupTimeout = null;
+
+  function showPopup(id) {
+    var allPopups = document.querySelectorAll('.popup-overlay');
+    for (var i = 0; i < allPopups.length; i++) {
+      allPopups[i].style.display = 'none';
+      allPopups[i].classList.remove('popup-show', 'popup-hide');
+    }
+
+    if (popupTimeout) {
+      clearTimeout(popupTimeout);
+      popupTimeout = null;
+    }
+
+    var popup = document.getElementById(id);
+    popup.style.display = 'flex';
+    void popup.offsetWidth;
+    popup.classList.add('popup-show');
+
+    popupTimeout = setTimeout(function () {
+      hidePopup(id);
+    }, 3500);
+  }
+
   //FUNCTIONS FOR POPUP - ON REVIEW
     function hidePopup(id) {
     var popup = document.getElementById(id);
@@ -224,30 +250,6 @@
   }
 });
 
-//FUNCTION FOR POPUP
- var popupTimeout = null;
-
-  function showPopup(id) {
-    var allPopups = document.querySelectorAll('.popup-overlay');
-    for (var i = 0; i < allPopups.length; i++) {
-      allPopups[i].style.display = 'none';
-      allPopups[i].classList.remove('popup-show', 'popup-hide');
-    }
-
-    if (popupTimeout) {
-      clearTimeout(popupTimeout);
-      popupTimeout = null;
-    }
-
-    var popup = document.getElementById(id);
-    popup.style.display = 'flex';
-    void popup.offsetWidth;
-    popup.classList.add('popup-show');
-
-    popupTimeout = setTimeout(function () {
-      hidePopup(id);
-    }, 3500);
-  }
  
 
     // Minimal client-side admin login (development only)
