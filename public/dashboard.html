@@ -5,9 +5,272 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link rel="stylesheet" href="admin-table.css">
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="sb-bootstrap5.css">
+    <link rel="stylesheet" href="admin-table.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-    <section id="adminBoard" style="display: none;">
+
+
+<div class="app">
+
+    <!-- ============ THE SIDEBAR (static on lg+, drawer below) ============ -->
+    <aside class="offcanvas-lg offcanvas-start" tabindex="-1" id="sidebar" aria-labelledby="sbLabel">
+
+        <div class="sb-inner">
+
+            <!-- header -->
+            <div class="offcanvas-header border-bottom">
+                <h5 class="offcanvas-title fw-bold text-primary" id="sbLabel">Veracity</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebar" aria-label="Close"></button>
+            </div>
+
+            <div class="offcanvas-body d-flex flex-column p-3 gap-3">
+
+                <!-- SEARCH: Bootstrap input-group (type words) -->
+               <div class="position-relative">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input id="sbSearch" type="text" class="form-control" placeholder="Search students, classes..." autocomplete="off">
+                    </div>
+                    <ul id="sbSuggest" class="list-group position-absolute w-100 shadow d-none"></ul>
+                </div>
+
+                <!-- HORIZONTAL CHOICES: nav-pills row -->
+                <ul class="nav nav-pills nav-fill pill-row small">
+                    <li class="nav-item">
+                        <button class="nav-link active btn-sm" data-bs-toggle="pill" data-bs-target="#p-all" type="button">All</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link btn-sm" data-bs-toggle="pill" data-bs-target="#p-teams" type="button">Teams</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link btn-sm" data-bs-toggle="pill" data-bs-target="#p-mine" type="button">Mine</button>
+                    </li>
+                </ul>
+
+                <!-- ======== NAV (pills switch the panels below) ======== -->
+                <nav class="sb-nav tab-content flex-grow-1 overflow-auto" id="navTabs">
+
+                    <!-- PANEL: all -->
+                    <div class="tab-pane fade show active" id="p-all" role="tabpanel">
+                      <ul class="nav flex-column">
+                          <li class="nav-item"><a class="nav-link active" href="#dashboard"><i class="bi bi-grid"></i> Dashboard</a></li>
+                          <li class="nav-item"><a class="nav-link" href="#removed"><i class="bi bi-trash"></i> Removed Records</a></li>
+                      </ul>
+
+                        <!-- sub-group via Bootstrap accordion -->
+                        <div class="accordion mt-1" id="accClasses">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseClasses">
+                                        <i class="bi bi-layout-text-sidebar-reverse me-2"></i> Classes
+                                    </button>
+                                </h2>
+                                <div id="collapseClasses" class="accordion-collapse collapse" data-bs-parent="#accClasses">
+                                    <div class="accordion-body p-0">
+                                        <ul class="nav flex-column">
+                                            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-dot"></i>Lecture</a></li>
+                                            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-dot"></i>Labs</a></li>
+                                            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-dot"></i>Grades</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <ul class="nav flex-column">
+                            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-list-ul"></i> Lists <span class="badge text-bg-danger rounded-pill ms-1">9</span></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-bell"></i> Notifications <span class="badge text-bg-warning rounded-pill ms-1">3</span></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-gear"></i> Settings</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- PANEL: teams -->
+                    <div class="tab-pane fade" id="p-teams" role="tabpanel">
+                        <ul class="nav flex-column">
+                            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-people"></i> My teams</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-person-plus"></i> Members</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- PANEL: mine -->
+                    <div class="tab-pane fade" id="p-mine" role="tabpanel">
+                        <ul class="nav flex-column">
+                            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-calendar-check"></i> My tasks</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-clock-history"></i> Recent</a></li>
+                        </ul>
+                    </div>
+                </nav>
+
+                <!-- ======== PROFILE (Bootstrap dropdown) ======== -->
+                <div class="profile-card">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary w-100 d-flex align-items-center gap-2" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle fs-5"></i>
+                            <span class="flex-grow-1 text-start">Jake Ber</span>
+                            <i class="bi bi-chevron-down small"></i>
+                        </button>
+                        <ul class="dropdown-menu w-100">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profile</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-palette me-2"></i>Theme</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-box-arrow-right me-2"></i>Sign out</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </aside>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="admin-view" id="view-dashboard">
     <div class="board-header">
     <h2>Admin Dashboard</h2>
     <button class="logout-board" onclick="logout()">Logout</button>
@@ -26,7 +289,10 @@
         </tr>
       </thead>
       <tbody id="adminTableBody"></table>
+    </section>
 
+  <section class="admin-view" id="view-removed" style="display: none;">
+    <div class="board-header">
     <h2>Removed Records</h2>
         <table class="table" id="removedTable">
         <thead>
@@ -39,7 +305,7 @@
             </tr>
       </thead>
       <tbody id="removedTableBody"></tbody></table>
-       </section>
+</section>
 
 <!--
     <script>
@@ -514,7 +780,22 @@ And the HTML section header change on line 11:
 
     <script>
 
-        document.getElementById('adminBoard').style.display = 'block';
+
+      window.addEventListener('hashchange', () => showView(location.hash.slice(1) || 'dashboard'));
+      showView('dashboard');
+      //that 'dashboard' was just a text nothing contributes to teh cide it was just passed down to the function showView() as a parameter to show the view of the dashboard when the page loads.
+      //so the 'dashboard' will pass as parameter named "name" in the function showView(name) and the "name" will be used to compare the "id" of the divs with class "admin-view" and the "id".
+
+      //the flow was the parameter name "v.id" was the "id" of the link href I click and the "name" was the "id" that I click.
+      function showView(name) {
+            document.querySelectorAll('.admin-view').forEach(v => {
+                v.style.display = (v.id === 'view-' + name) ? 'block' : 'none';
+            });
+            document.querySelectorAll('#navTabs a.nav-link').forEach(a => {
+                a.classList.toggle('active', a.getAttribute('href') === '#' + name);
+            });
+      }
+        
         const tbody = document.querySelector('#adminTableBody');
         const removedTbody = document.querySelector('#removedTableBody');
         let entries = [];
@@ -523,6 +804,15 @@ And the HTML section header change on line 11:
         if (!savedToken) {
         window.location.href = 'admin.html'; 
         }
+
+        function checkAuth() {
+        if (!localStorage.getItem('adminToken')) {
+                window.location.href = 'admin.html';
+            }
+        }
+
+        checkAuth();                                    // on first load
+        window.addEventListener('pageshow', checkAuth);
 
 
          function loadEntriesFromServer() {
@@ -764,6 +1054,132 @@ And the HTML section header change on line 11:
     localStorage.removeItem('adminToken');
     window.location.href = 'admin.html';  // ← back to login
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    var q = document.getElementById('sbSearch'),
+    box = document.getElementById('sbSuggest'),
+    nav = document.getElementById('navTabs');
+
+function lbl(el) {
+    var c = el.cloneNode(true);
+    c.querySelectorAll('.badge').forEach(function (b) { b.remove(); });
+    return c.textContent.replace(/\s+/g, ' ').trim();
+}
+
+var items = [].slice.call(nav.querySelectorAll('.nav-link, .accordion-button')).map(function (el) {
+    var t = lbl(el);
+    return { el: el, t: t, s: t.toLowerCase(), pane: el.closest('.tab-pane'), grp: el.closest('.accordion-collapse') };
+});
+
+function setPanel(id) {
+    nav.querySelectorAll('.tab-pane').forEach(function (p) {
+        p.classList.toggle('active', p.id === id);
+        p.classList.toggle('show', p.id === id);
+    });
+    document.querySelectorAll('[data-bs-toggle="pill"]').forEach(function (b) {
+        b.classList.toggle('active', b.dataset.bsTarget === '#' + id);
+    });
+}
+
+function search(raw) {
+    var s = raw.trim().toLowerCase(), paneHit = {}, grpHit = new Set(), hits = [];
+
+    items.forEach(function (o) {
+        var hit = o.s.indexOf(s) > -1;
+        o.el.style.display = (!s || hit) ? '' : 'none';
+        if (hit) { hits.push(o); if (o.pane) paneHit[o.pane.id] = 1; if (o.grp) grpHit.add(o.grp); }
+    });
+
+    items.forEach(function (o) {
+        if (o.grp && o.el.matches('.accordion-button'))
+            o.el.style.display = (!s || grpHit.has(o.grp)) ? '' : 'none';
+    });
+
+    nav.querySelectorAll('.accordion-collapse').forEach(function (g) {
+        if (s && grpHit.has(g)) {
+            if (!g.classList.contains('show')) { g.dataset.opened = '1'; g.classList.add('show'); }
+        } else if (g.dataset.opened) { delete g.dataset.opened; g.classList.remove('show'); }
+    });
+
+    document.querySelectorAll('[data-bs-toggle="pill"]').forEach(function (b) {
+        var p = document.querySelector(b.dataset.bsTarget);
+        b.closest('.nav-item').style.display = (s && !(p && paneHit[p.id])) ? 'none' : '';
+    });
+
+    nav.querySelectorAll('.nav.flex-column').forEach(function (ul) {
+        ul.style.display = [].some.call(ul.querySelectorAll('li a'), function (a) {
+            return a.style.display !== 'none';
+        }) ? '' : 'none';
+    });
+
+    var cur = nav.querySelector('.tab-pane.active');
+    if (s && cur && !paneHit[cur.id]) {
+        var o = hits.filter(function (h) { return h.pane; })[0];
+        if (o) setPanel(o.pane.id);
+    }
+
+    var top = hits.slice(0, 6);
+}
+
+q.addEventListener('input', function () { search(q.value); });
+
+q.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { q.value = ''; search(''); e.stopPropagation(); }
+    if (e.key === 'ArrowDown') { var f = box.querySelector('.sb-sug'); if (f) { e.preventDefault(); f.focus(); } }
+});
+
+box.addEventListener('mousedown', function (e) { e.preventDefault(); });
+
+box.addEventListener('keydown', function (e) {
+    var l = [].slice.call(box.querySelectorAll('.sb-sug')), i = l.indexOf(document.activeElement);
+    if (e.key === 'Enter' && l[i]) { e.preventDefault(); l[i].click(); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); (l[i + 1] || l[0]).focus(); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); (l[i - 1] || l[l.length - 1]).focus(); }
+    if (e.key === 'Escape') { e.preventDefault(); q.focus(); box.classList.add('d-none'); }
+});
+
+box.addEventListener('click', function (e) {
+    var li = e.target.closest('.sb-sug'); if (!li) return;
+    var o = window.__hits[+li.dataset.i]; if (!o) return;
+    if (o.pane && !o.pane.classList.contains('active')) setPanel(o.pane.id);
+    if (o.grp) o.grp.classList.add('show');
+    o.el.focus(); o.el.scrollIntoView({ block: 'nearest' });
+    box.classList.add('d-none');
+});
+    </script>
+</body>
+</html>
 
     </script>
 </body>

@@ -1,5 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
-
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+}
 body{
     background-color: rgb(253, 253, 253);
 }
@@ -179,4 +185,131 @@ h2{
        padding: 1rem;
     }
     
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+.offcanvas-lg .offcanvas-body { 
+    flex-grow: 1; 
+}
+.app main {
+    flex: 1;
+    min-width: 0;
+}
+/* ---------- Sidebar sizing on desktop (lg+) ----------
+   Bootstrap keeps .offcanvas-lg static on large screens; we make
+   it sticky and give it a fixed width so it looks like a panel. */
+@media (min-width: 992px) {
+    .offcanvas-lg {
+        position: sticky !important;
+        top: 0;
+        width: 16.5rem !important;
+        height: 100vh;
+        transform: none !important;
+        background-color: var(--bs-body-bg) !important;
+        border-right: 1px solid var(--bs-border-color);
+        visibility: visible !important;
+    }
+}
+/* ---------- Sidebar internals ---------- */
+.sb-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+/* search input group gets a touch more rounding */
+.input-group .form-control:focus {
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.12);
+}
+/* horizontal choices: default nav-pills are horizontal already */
+.pill-row {
+    border: 0;
+    flex-wrap: nowrap;
+}
+/* nav links in the sidebar look like menu items */
+.sb-nav .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 0.7rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    color: #495057;
+    margin-bottom: 0.15rem;
+}
+.sb-nav .nav-link:hover {
+    background: var(--bs-primary-bg-subtle);
+}
+/* accordion items inside the sidebar */
+.sb-nav .accordion-item {
+    border: 0;
+}
+.sb-nav .accordion-button {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.9rem;
+    border-radius: 10px !important;
+    box-shadow: none;
+}
+.sb-nav .accordion-button:not(.collapsed) {
+    background: var(--bs-primary-bg-subtle);
+    color: var(--bs-primary);
+}
+/* badge chips */
+.sb-nav .badge {
+    margin-left: auto;
+}
+.nav.flex-column{
+    padding: 1rem;
+}
+/* footer profile card */
+.profile-card {
+    margin-top: auto;
+    border-top: 1px solid var(--bs-border-color);
+    padding: 0.9rem 1rem;
+}
+/* page content */
+.page {
+    padding: 2rem;
 }
