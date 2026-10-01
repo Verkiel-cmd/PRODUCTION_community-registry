@@ -800,10 +800,6 @@ And the HTML section header change on line 11:
         const removedTbody = document.querySelector('#removedTableBody');
         let entries = [];
 
-        const savedToken = localStorage.getItem('adminToken');
-        if (!savedToken) {
-        window.location.href = 'admin.html'; 
-        }
 
         function checkAuth() {
         if (!localStorage.getItem('adminToken')) {
