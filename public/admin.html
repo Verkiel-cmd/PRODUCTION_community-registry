@@ -252,55 +252,6 @@
 
  
 
-    // Minimal client-side admin login (development only)
-    // - Credentials: username 'admin' and password 'password' (matches the input value in the form)
-    // - This is local-only and not secure. Replace with server-side auth for production.
-    //document.getElementById('adminLogin').addEventListener('submit', (evt) => {
-      //evt.preventDefault();
-      //const user = document.getElementById('adminUser').value;
-      //const pass = document.getElementById('adminPass').value;
-      // Hard-coded check for development convenience
-      //if (user === 'admin' && pass === 'password') {
-        // hide the entire login section and reveal admin board
-        //document.getElementById('loginSection').hidden = true;
-        //const board = document.getElementById('adminBoard');
-        //board.hidden = false;
-        // After showing the board, load shared entries and render the table.
-        //loadEntriesFromServer();
-        //renderAdminTable();
-        // focus first control for keyboard users
-        //const first = board.querySelector('.action-btn, .apply-status, .status-select');
-        //if (first) first.focus();
-      //} else {
-        // simple feedback; you can replace with inline message or aria-live region
-        //alert('Invalid admin credentials');
-      //}
-    //});
-
-    // --- Data sync helpers (admin page) ---
-    // Use `localStorage` + the `storage` event to synchronize entries between tabs.
-    // This is simpler than BroadcastChannel and works in all modern browsers.
-    // Note: the `storage` event fires in OTHER tabs, not in the tab that wrote to localStorage.
-    //let entries = [];
-    //const tbody = document.querySelector('#requestsTable tbody');
-    //const loginSection = document.getElementById('loginSection');
-    //const board = document.getElementById('adminBoard');
-    // Reference to the removed records table body — populated in renderAdminTable()
-    //const removedTbody = document.querySelector('#removedTableBody');
-
-    //function loadEntriesFromServer() {
-     //fetch('https://production-baranggay-registry.onrender.com/api/entries')
-    //.then(response => {
-      //if (!response.ok) throw new Error('Failed to load server data');
-      //return response.json();
-    //})
-    //.then(data => {
-      //entries = data;
-      //renderAdminTable(); // Redraw table with fresh data
-    //})
-    //.catch(error => console.error('Error fetching entries:', error));
-   //}
-
     // Load entries from localStorage (fall back to an empty array if absent).
     //function loadEntriesFromStorage(){
       //try{

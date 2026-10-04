@@ -1,12 +1,13 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const Admin = require('./models/admin');
-const fs = require('fs');
-const path = require('path');
+﻿import express from 'express';
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import Admin from './models/admin.js';
+import fs from 'fs';
+import path from 'path';
 require('dotenv').config();
-const Entry = require('./models/entry');
+import rateLimit from 'express-rate-limit';
+import Entry from './models/entry.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -218,6 +219,14 @@ app.use(cors({
   }
 }))
 
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 50,
+    message: { error: 'Too many requests, please try again later.'},
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 conn.once('open', () => {
   console.log('Successfully connected to the database!');
 });
@@ -242,7 +251,7 @@ function authenticateAdmin(req, res, next) {
   }
 }
 
-app.post('/api/admin/login', async (req, res) => {
+app.post('/api/admin/login', authLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -310,7 +319,7 @@ let refCounter = 232;
 
 //let entries = loadEntries();
 
-app.get('/api/entries', async (req, res) => {
+app.get('/api/entries', authLimiter, async (req, res) => {
          try {
            const entries = await Entry.find().sort({ date: -1 });
            res.json(entries);
@@ -351,7 +360,7 @@ app.get('/api/entries', async (req, res) => {
          //}
        //});
 
-       app.post('/api/entries', async (req, res) => {
+       app.post('/api/entries', authLimiter, async (req, res) => {
          try {
            const { fullname, title, category, purok } = req.body;
            if (!fullname || !title || !category || !purok) {
@@ -401,7 +410,7 @@ app.get('/api/entries', async (req, res) => {
     //res.status(201).json({ message: 'Entry saved successfully!', entry: newEntry });
 //});
 
-app.patch('/api/entries/:ref', authenticateAdmin, async (req, res) => {
+app.patch('/api/entries/:ref', authenticateAdmin, authLimiter, async (req, res) => {
   try {
     const { ref } = req.params;
     const { status, note } = req.body;
@@ -430,3 +439,4 @@ app.patch('/api/entries/:ref', authenticateAdmin, async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
