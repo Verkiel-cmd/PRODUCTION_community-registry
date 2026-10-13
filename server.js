@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import Admin from './models/admin.js';
 import fs from 'fs';
 import path from 'path';
-require('dotenv').config();
+import 'dotenv/config';
 import rateLimit from 'express-rate-limit';
 import Entry from './models/entry.js';
 
