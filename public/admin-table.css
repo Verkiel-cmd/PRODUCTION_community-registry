@@ -9,9 +9,56 @@
 body{
     background-color: rgb(253, 253, 253);
 }
-:root{
-    --green:#3F5D46;
+
+
+:root {
+  --primary: #0d9488;
+  --primary-strong: #0f766e;
+  --primary-soft: #ccfbf1;
+
+  --bg: #f1f5f9;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, .05);
+  --shadow: 0 1px 3px rgba(15, 23, 42, .06), 0 8px 24px rgba(15, 23, 42, .06);
+  --shadow-lg: 0 4px 12px rgba(15, 23, 42, .08), 0 20px 40px rgba(15, 23, 42, .10);
+
+  --radius: 16px;
+  --radius-sm: 10px;
+  --sidebar-w: 256px;
+  --head-h: 72px;
 }
+
+.sb-toggle {
+  display: none;                          /* hidden on desktop */
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1045;                          /* above content, below offcanvas */
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1.5rem;
+  line-height: 1;
+  box-shadow: var(--shadow);
+  align-items: center;
+  justify-content: center;
+}
+.sb-toggle:active { transform: translateY(1px); }
+
+@media (max-width: 991.98px) {
+  .sb-toggle { display: inline-flex; }
+  .admin-view { padding-top: 3.5rem; }    /* keeps the button off the heading */
+}
+
+
 .board-header{
     display: flex;
     justify-content: space-between;
@@ -19,6 +66,7 @@ body{
     padding: 1rem 2rem 1rem 0;
     font-family: 'Outfit', sans-serif;
 }
+
 .table{
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     border: 1px solid #1C2B45;
@@ -187,43 +235,6 @@ h2{
     
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .app {
     display: flex;
     min-height: 100vh;
@@ -312,4 +323,240 @@ h2{
 /* page content */
 .page {
     padding: 2rem;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.admin-view{
+    min-width: 0;  /* ← the key line: permits shrinking below content size */
+    padding-left: 7rem;
+}
+
+
+.table-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .89rem;
+  justify-content: center;
+}
+
+th,
+td {
+  padding: .85rem 1.1rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+th {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--surface-2);
+  white-space: nowrap;
+}
+
+tbody tr {
+  transition: background .15s ease;
+}
+
+tbody tr:hover {
+  background: var(--surface-2);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+td strong {
+  font-weight: 600;
+}
+
+td small {
+  color: var(--muted);
+  font-size: .74rem;
+}
+
+
+
+
+
+
+
+
+
+@media (max-width: 991px) {
+
+table,
+  thead,
+  tbody,
+  tr,
+  td {
+
+    display: block;
+  }
+  .admin-view{
+    margin: auto;
+    align-items: center;
+    padding: 0px;
+  }
+  .text-admin {
+    padding-left: 5rem;
+  }
+
+  thead {
+    display: none;
+  }
+
+  .table-box {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    overflow-x: visible;
+  }
+
+  tbody tr {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: .6rem .9rem;
+    margin-bottom: .75rem;
+  }
+
+  td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .5rem 0;
+    border-bottom: 1px dashed var(--border);
+    white-space: normal;
+  }
+
+  td:last-child {
+    border-bottom: none;
+  }
+
+  /* Pulls the column name out of the data-label attribute */
+  td::before {
+    content: attr(data-label);
+    flex: none;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  td.empty {
+    display: block;
+    text-align: center;
+  }
+
+  td.empty::before {
+    content: none;
+  }
+  td { 
+    flex-wrap: wrap; 
+}               /* ← THE actual fix */
+    td.cell-actions::before { 
+        flex-basis: 100%; 
+    }  /* "ACTIONS" on its own line */
 }
