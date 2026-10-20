@@ -421,7 +421,6 @@ h2{
 
 .table-box {
   background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
   overflow-x: auto;
@@ -481,27 +480,38 @@ td small {
 
 
 
+/* ============================================================
+   TABLE — mobile card layout (below lg)
+   ------------------------------------------------------------
+   Every <td> becomes a flex row. The left side is the column
+   NAME, injected by td::before from the data-label attribute;
+   the right side is the value.
+   ============================================================ */
 @media (max-width: 991px) {
 
-table,
+  table,
   thead,
   tbody,
   tr,
   td {
-
     display: block;
   }
+
   .admin-view{
     margin: auto;
     align-items: center;
-    padding: 0px;
-  }
-  .text-admin {
-    padding-left: 5rem;
+    /*  >>> NOT the `padding: 0px` shorthand <<<
+        The shorthand resets ALL FOUR sides, which would wipe out the
+        `padding-top: 3.5rem` set by the .sb-toggle block above and
+        drop the page heading back underneath the fixed button.
+        These longhands leave padding-top alone. */
+    padding-right: 0px;
+    padding-bottom: 0px;
+    padding-left: 0px;
   }
 
   thead {
-    display: none;
+    display: none;           /* the column names come back via ::before */
   }
 
   .table-box {
@@ -528,6 +538,14 @@ table,
     padding: .5rem 0;
     border-bottom: 1px dashed var(--border);
     white-space: normal;
+
+    /*  >>> THE ACTUAL FIX <<<
+        The Actions cell holds ~6 controls. Without wrapping, its
+        min-content width is ~687px, which becomes the floor for
+        the whole table -> the page starts scrolling sideways and
+        the content gets clipped. Wrapping lets the controls flow
+        onto extra lines; the floor drops to ~136px. */
+    flex-wrap: wrap;
   }
 
   td:last-child {
@@ -545,6 +563,22 @@ table,
     color: var(--muted);
   }
 
+  /* The Actions cell has too many controls for one line.
+     flex-basis: 100% pushes the "ACTIONS" label onto its own
+     line so the buttons start cleanly underneath it. */
+  td.cell-actions::before {
+    flex-basis: 100%;
+  }
+
+  .cell-actions {
+    justify-content: flex-start;
+    gap: .5rem;
+  }
+
+  /* Empty state ("No records found.").
+     A td that is display:flex ignores text-align:center, so the
+     message would sit hard against the right edge. Switch it to
+     display:block and kill the (empty) label. */
   td.empty {
     display: block;
     text-align: center;
@@ -553,10 +587,4 @@ table,
   td.empty::before {
     content: none;
   }
-  td { 
-    flex-wrap: wrap; 
-}               /* ← THE actual fix */
-    td.cell-actions::before { 
-        flex-basis: 100%; 
-    }  /* "ACTIONS" on its own line */
 }
