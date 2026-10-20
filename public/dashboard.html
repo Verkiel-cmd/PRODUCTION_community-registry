@@ -1111,14 +1111,14 @@ And the HTML section header change on line 11:
     box = document.getElementById('sbSuggest'),
     nav = document.getElementById('navTabs');
 
-function lbl(el) {
+function searchSidebar(el) {
     var c = el.cloneNode(true);
     c.querySelectorAll('.badge').forEach(function (b) { b.remove(); });
     return c.textContent.replace(/\s+/g, ' ').trim();
 }
 
 var items = [].slice.call(nav.querySelectorAll('.nav-link, .accordion-button')).map(function (el) {
-    var t = lbl(el);
+    var t = searchSidebar(el);
     return { el: el, t: t, s: t.toLowerCase(), pane: el.closest('.tab-pane'), grp: el.closest('.accordion-collapse') };
 });
 
