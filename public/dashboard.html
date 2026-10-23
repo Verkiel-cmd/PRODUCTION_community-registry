@@ -1132,112 +1132,148 @@ And the HTML section header change on line 11:
 
 
 
-    var q = document.getElementById('sbSearch'),
-    box = document.getElementById('sbSuggest'),
-    nav = document.getElementById('navTabs');
+    
+    var searchInput = document.getElementById('sbSearch'),
+    suggestionList = document.getElementById('sbSuggest'),
+    navigationTabs = document.getElementById('navTabs');
 
-function searchSidebar(el) {
-    var c = el.cloneNode(true);
-    c.querySelectorAll('.badge').forEach(function (b) { b.remove(); });
-    return c.textContent.replace(/\s+/g, ' ').trim();
+function searchSidebar(element) {
+    var elementCopy = element.cloneNode(true);
+    elementCopy.querySelectorAll('.badge').forEach(function (badge) { badge.remove(); });
+    return elementCopy.textContent.replace(/\s+/g, ' ').trim();
 }
 
-var items = [].slice.call(nav.querySelectorAll('.nav-link, .accordion-button')).map(function (el) {
-    var t = searchSidebar(el);
-    return { el: el, t: t, s: t.toLowerCase(), pane: el.closest('.tab-pane'), grp: el.closest('.accordion-collapse') };
+var sidebarItems = [].slice.call(navigationTabs.querySelectorAll('.nav-link, .accordion-button')).map(function (element) {
+    var labelText = searchSidebar(element);
+    return {
+        element: element,
+        labelText: labelText,
+        normalizedText: labelText.toLowerCase(),
+        tabPane: element.closest('.tab-pane'),
+        accordionGroup: element.closest('.accordion-collapse')
+    };
 });
 
-function setPanel(id) {
-    nav.querySelectorAll('.tab-pane').forEach(function (p) {
-        p.classList.toggle('active', p.id === id);
-        p.classList.toggle('show', p.id === id);
+function setPanel(panelId) {
+    navigationTabs.querySelectorAll('.tab-pane').forEach(function (panel) {
+        panel.classList.toggle('active', panel.id === panelId);
+        panel.classList.toggle('show', panel.id === panelId);
     });
-    document.querySelectorAll('[data-bs-toggle="pill"]').forEach(function (b) {
-        b.classList.toggle('active', b.dataset.bsTarget === '#' + id);
+    document.querySelectorAll('[data-bs-toggle="pill"]').forEach(function (button) {
+        button.classList.toggle('active', button.dataset.bsTarget === '#' + panelId);
     });
 }
 
 /* The suggestion dropdown.
-   Builds the <li> markup from the hits, assigns window.__hits so
-   data-i can map back to the nav item, and reveals the list. */
-function renderSuggest(list) {
-  if (!list.length) {
-    box.classList.add('d-none');
-    box.innerHTML = '';
-    window.__hits = [];
-    return;
-  }
-  window.__hits = list;
-  box.innerHTML = list.map(function (o, i) {
-    return '<li class="list-group-item sb-sug" data-i="' + i + '" tabindex="0">' + o.t + '</li>';
-  }).join('');
-  box.classList.remove('d-none');
+   Builds the <li> markup from the matches, assigns window.__sidebarSearchHits so the
+   data-i attribute can map back to the navigation item, and removes the
+   Bootstrap `d-none` class to reveal it. */
+function renderSuggest(suggestions) {
+    if (!suggestions.length) {
+        suggestionList.classList.add('d-none');
+        suggestionList.innerHTML = '';
+        window.__sidebarSearchHits = [];
+        return;
+    }
+    window.__sidebarSearchHits = suggestions;
+    suggestionList.innerHTML = suggestions.map(function (item, index) {
+        return '<li class="list-group-item sb-sug" data-i="' + index + '" tabindex="0">' + item.labelText + '</li>';
+    }).join('');
+    suggestionList.classList.remove('d-none');
 }
 
-function search(raw) {
-    var s = raw.trim().toLowerCase(), paneHit = {}, grpHit = new Set(), hits = [];
+function search(rawQuery) {
+    var normalizedQuery = (rawQuery || '').trim().toLowerCase(),
+        matchingPanes = {},
+        matchingGroups = new Set(),
+        matchingItems = [];
 
-    items.forEach(function (o) {
-        var hit = o.s.indexOf(s) > -1;
-        o.el.style.display = (!s || hit) ? '' : 'none';
-        if (hit) { hits.push(o); if (o.pane) paneHit[o.pane.id] = 1; if (o.grp) grpHit.add(o.grp); }
+    sidebarItems.forEach(function (item) {
+        var isMatch = item.normalizedText.indexOf(normalizedQuery) > -1;
+        item.element.style.display = (!normalizedQuery || isMatch) ? '' : 'none';
+        if (isMatch) {
+            matchingItems.push(item);
+            if (item.tabPane) matchingPanes[item.tabPane.id] = 1;
+            if (item.accordionGroup) matchingGroups.add(item.accordionGroup);
+        }
     });
 
-    items.forEach(function (o) {
-        if (o.grp && o.el.matches('.accordion-button'))
-            o.el.style.display = (!s || grpHit.has(o.grp)) ? '' : 'none';
+    sidebarItems.forEach(function (item) {
+        if (item.accordionGroup && item.element.matches('.accordion-button'))
+            item.element.style.display = (!normalizedQuery || matchingGroups.has(item.accordionGroup)) ? '' : 'none';
     });
 
-    nav.querySelectorAll('.accordion-collapse').forEach(function (g) {
-        if (s && grpHit.has(g)) {
-            if (!g.classList.contains('show')) { g.dataset.opened = '1'; g.classList.add('show'); }
-        } else if (g.dataset.opened) { delete g.dataset.opened; g.classList.remove('show'); }
+    navigationTabs.querySelectorAll('.accordion-collapse').forEach(function (accordionGroup) {
+        if (normalizedQuery && matchingGroups.has(accordionGroup)) {
+            if (!accordionGroup.classList.contains('show')) {
+                accordionGroup.dataset.opened = '1';
+                accordionGroup.classList.add('show');
+            }
+        } else if (accordionGroup.dataset.opened) {
+            delete accordionGroup.dataset.opened;
+            accordionGroup.classList.remove('show');
+        }
     });
 
-    document.querySelectorAll('[data-bs-toggle="pill"]').forEach(function (b) {
-        var p = document.querySelector(b.dataset.bsTarget);
-        b.closest('.nav-item').style.display = (s && !(p && paneHit[p.id])) ? 'none' : '';
+    document.querySelectorAll('[data-bs-toggle="pill"]').forEach(function (button) {
+        var targetPane = document.querySelector(button.dataset.bsTarget);
+        button.closest('.nav-item').style.display = (normalizedQuery && !(targetPane && matchingPanes[targetPane.id])) ? 'none' : '';
     });
 
-    nav.querySelectorAll('.nav.flex-column').forEach(function (ul) {
-        ul.style.display = [].some.call(ul.querySelectorAll('li a'), function (a) {
-            return a.style.display !== 'none';
+    navigationTabs.querySelectorAll('.nav.flex-column').forEach(function (navigationList) {
+        navigationList.style.display = [].some.call(navigationList.querySelectorAll('li a'), function (link) {
+            return link.style.display !== 'none';
         }) ? '' : 'none';
     });
 
-    var cur = nav.querySelector('.tab-pane.active');
-    if (s && cur && !paneHit[cur.id]) {
-        var o = hits.filter(function (h) { return h.pane; })[0];
-        if (o) setPanel(o.pane.id);
+    var currentPanel = navigationTabs.querySelector('.tab-pane.active');
+    if (normalizedQuery && currentPanel && !matchingPanes[currentPanel.id]) {
+        var firstMatchingItem = matchingItems.filter(function (item) { return item.tabPane; })[0];
+        if (firstMatchingItem) setPanel(firstMatchingItem.tabPane.id);
     }
 
-    renderSuggest(hits.slice(0, 6));
+    // The dropdown lists the matches. (This line used to be
+    // `var topMatches = matchingItems.slice(0, 6);` — computed and never used, which is
+    // why the suggestion box never rendered.)
+    renderSuggest(matchingItems.slice(0, 6));
 }
 
-q.addEventListener('input', function () { search(q.value); });
+searchInput.addEventListener('input', function () { search(searchInput.value); });
 
-q.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') { q.value = ''; search(''); e.stopPropagation(); }
-    if (e.key === 'ArrowDown') { var f = box.querySelector('.sb-sug'); if (f) { e.preventDefault(); f.focus(); } }
+searchInput.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') { searchInput.value = ''; search(''); event.stopPropagation(); }
+    if (event.key === 'ArrowDown') {
+        var firstSuggestion = suggestionList.querySelector('.sb-sug');
+        if (firstSuggestion) { event.preventDefault(); firstSuggestion.focus(); }
+    }
 });
 
-box.addEventListener('mousedown', function (e) { e.preventDefault(); });
+suggestionList.addEventListener('mousedown', function (event) { event.preventDefault(); });
 
-box.addEventListener('keydown', function (e) {
-    var l = [].slice.call(box.querySelectorAll('.sb-sug')), i = l.indexOf(document.activeElement);
-    if (e.key === 'Enter' && l[i]) { e.preventDefault(); l[i].click(); }
-    if (e.key === 'ArrowDown') { e.preventDefault(); (l[i + 1] || l[0]).focus(); }
-    if (e.key === 'ArrowUp') { e.preventDefault(); (l[i - 1] || l[l.length - 1]).focus(); }
-    if (e.key === 'Escape') { e.preventDefault(); q.focus(); box.classList.add('d-none'); }
+suggestionList.addEventListener('keydown', function (event) {
+    var suggestionElements = [].slice.call(suggestionList.querySelectorAll('.sb-sug')),
+        focusedIndex = suggestionElements.indexOf(document.activeElement);
+    if (event.key === 'Enter' && suggestionElements[focusedIndex]) { event.preventDefault(); suggestionElements[focusedIndex].click(); }
+    if (event.key === 'ArrowDown') { event.preventDefault(); (suggestionElements[focusedIndex + 1] || suggestionElements[0]).focus(); }
+    if (event.key === 'ArrowUp') { event.preventDefault(); (suggestionElements[focusedIndex - 1] || suggestionElements[suggestionElements.length - 1]).focus(); }
+    if (event.key === 'Escape') { event.preventDefault(); searchInput.focus(); suggestionList.classList.add('d-none'); }
 });
 
-box.addEventListener('click', function (e) {
-    var li = e.target.closest('.sb-sug'); if (!li) return;
-    var o = window.__hits[+li.dataset.i]; if (!o) return;
-    if (o.pane && !o.pane.classList.contains('active')) setPanel(o.pane.id);
-    if (o.grp) o.grp.classList.add('show');
-    o.el.focus(); o.el.scrollIntoView({ block: 'nearest' });
-    box.classList.add('d-none');
+suggestionList.addEventListener('click', function (event) {
+    var clickedSuggestion = event.target.closest('.sb-sug');
+    if (!clickedSuggestion) return;
+    var selectedItem = window.__sidebarSearchHits[+clickedSuggestion.dataset.i];
+    if (!selectedItem) return;
+    if (selectedItem.tabPane && !selectedItem.tabPane.classList.contains('active')) setPanel(selectedItem.tabPane.id);
+    if (selectedItem.accordionGroup) selectedItem.accordionGroup.classList.add('show');
+    selectedItem.element.focus();
+    selectedItem.element.scrollIntoView({ block: 'nearest' });
+    suggestionList.classList.add('d-none');
+});
+
+/* Close the dropdown when clicking outside the search box. */
+document.addEventListener('click', function (event) {
+    if (!searchInput.contains(event.target) && !suggestionList.contains(event.target)) suggestionList.classList.add('d-none');
 });
     </script>
 </body>
