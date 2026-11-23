@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import Admin from './models/admin.js';
+import crypto from 'crypto';
+import { csrfFetch } from './public/csrf.js'; 
 import fs from 'fs';
 import path from 'path';
 import 'dotenv/config';
@@ -201,6 +203,35 @@ const conn = mongoose.connection;
 //
 // ============================================================
 
+const issuedTokens = new Set();
+
+app.get('/csrf-token', (req, res) => {            // your client reads data.csrfToken
+  const t = crypto.randomBytes(32).toString('base64url');
+  issuedTokens.add(t);
+  res.json({ csrfToken: t });
+});
+
+function csrfGuard(req, res, next) {
+  const origin = req.headers.origin;
+  if (origin && !allowedOrigins.includes(origin)
+      && origin !== `http://${req.headers.host}` && origin !== `https://${req.headers.host}`) {
+    return res.status(403).json({ error: 'Invalid CSRF token' });
+  }
+  const token = req.headers['x-csrf-token'];     // matches client's 'X-CSRF-Token'
+  if (!token || !issuedTokens.has(token)) {
+    return res.status(403).json({ error: 'Invalid CSRF token' });
+  }
+  next();
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+         .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function sanitizeText(str) {
+  if (str == null) return '';
+  return escapeHtml(String(str).replace(/<[^>]*>/g, ''));
+}
 
 app.use(express.static('public'));
 app.use(express.json());
@@ -252,7 +283,7 @@ function authenticateAdmin(req, res, next) {
   }
 }
 
-app.post('/api/admin/login', authLimiter, async (req, res) => {
+app.post('/api/admin/login', csrfGuard, authLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -320,7 +351,7 @@ let refCounter = 232;
 
 //let entries = loadEntries();
 
-app.get('/api/entries', authLimiter, async (req, res) => {
+app.get('/api/entries', csrfGuard, authLimiter, async (req, res) => {
          try {
            const entries = await Entry.find().sort({ date: -1 });
            res.json(entries);
@@ -361,7 +392,7 @@ app.get('/api/entries', authLimiter, async (req, res) => {
          //}
        //});
 
-       app.post('/api/entries', authLimiter, async (req, res) => {
+       app.post('/api/entries', csrfGuard, authLimiter, async (req, res) => {
          try {
            const { fullname, title, category, purok } = req.body;
            if (!fullname || !title || !category || !purok) {
@@ -411,7 +442,7 @@ app.get('/api/entries', authLimiter, async (req, res) => {
     //res.status(201).json({ message: 'Entry saved successfully!', entry: newEntry });
 //});
 
-app.patch('/api/entries/:ref', authenticateAdmin, authLimiter, async (req, res) => {
+app.patch('/api/entries/:ref', csrfGuard, authenticateAdmin, authLimiter, async (req, res) => {
   try {
     const { ref } = req.params;
     const { status, note } = req.body;
