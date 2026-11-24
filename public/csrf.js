@@ -1,4 +1,4 @@
-import config from '../Auth_section/config';
+import config from '../Auth_section/config.js';
 
 let csrfToken = null;
 
