@@ -9,6 +9,12 @@
     <link rel="stylesheet" href="admin-table.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
+
+<script type="module">
+  import { csrfFetch } from './csrf.js';
+  window.csrfFetch = csrfFetch;
+</script>
+
 <body>
 
 
@@ -808,6 +814,16 @@ And the HTML section header change on line 11:
 
     <script>
 
+      // ==================== OUTPUT ENCODING ====================
+      function esc(value) {
+        return String(value ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
       const SAMPLE_ENTRIES = [
         { ref:'MLY-2026-0233', fullname:'Maria Santos', title:'Streetlight out', category:'Infrastructure', purok:'Purok 4', date:'Jul 12', status:'pending' },
         { ref:'MLY-2026-0232', fullname:'Juan Dela Cruz', title:'Barangay clearance', category:'Document', purok:'Purok 2', date:'Jul 11', status:'released' },
@@ -863,7 +879,7 @@ And the HTML section header change on line 11:
 
       async function loadEntriesFromServer() {
         try {
-          const response = await fetch('https://production-baranggay-registry.onrender.com/api/entries');
+          const response = await csrfFetch('https://production-baranggay-registry.onrender.com/api/entries');
           if (!response.ok) throw new Error('Failed to load server data');
           entries = await response.json();
         } catch (error) {
@@ -883,23 +899,23 @@ And the HTML section header change on line 11:
           tbody.innerHTML = '<tr><td colspan="8" class="empty" style="text-align:center;">No active records found.</td></tr>';
         } else {
         tbody.innerHTML = activeEntries.map(e => `
-          <tr data-ref="${e.ref}">
-            <td class="cell-ref" data-label="Ref" >${e.ref}</td>
-            <td class="cell-fullname" data-label="Full Name" >${e.fullname}</td>
-            <td class="cell-title" data-label="Title" >${e.title}</td>
-            <td class="cell-category" data-label="Category" >${e.category}</td>
-            <td class="cell-purok" data-label="Purok" >${e.purok}</td>
-            <td class="cell-date" data-label="Date"> >${e.date}</td>
-            <td class="cell-status" data-label="Status" >${e.status}</td>
+          <tr data-ref="${esc(e.ref)}">
+            <td class="cell-ref" data-label="Ref" >${esc(e.ref)}</td>
+            <td class="cell-fullname" data-label="Full Name" >${esc(e.fullname)}</td>
+            <td class="cell-title" data-label="Title" >${esc(e.title)}</td>
+            <td class="cell-category" data-label="Category" >${esc(e.category)}</td>
+            <td class="cell-purok" data-label="Purok" >${esc(e.purok)}</td>
+            <td class="cell-date" data-label="Date"> >${esc(e.date)}</td>
+            <td class="cell-status" data-label="Status" >${esc(e.status)}</td>
             <td class="cell-actions" data-label="Actions" >
               <button class="action-btn" data-status="released">Release</button>
               <button class="action-btn" data-status="progress">In progress</button>
               <button class="action-btn" data-status="urgent">Urgent</button>
               <select class="status-select">
-                <option value="pending" ${e.status === 'pending' ? 'selected' : ''}>pending</option>
-                <option value="progress" ${e.status === 'progress' ? 'selected' : ''}>in progress</option>
-                <option value="released" ${e.status === 'released' ? 'selected' : ''}>released</option>
-                <option value="urgent" ${e.status === 'urgent' ? 'selected' : ''}>urgent</option>
+                <option value="pending" ${esc(e.status) === 'pending' ? 'selected' : ''}>pending</option>
+                <option value="progress" ${esc(e.status) === 'progress' ? 'selected' : ''}>in progress</option>
+                <option value="released" ${esc(e.status) === 'released' ? 'selected' : ''}>released</option>
+                <option value="urgent" ${esc(e.status) === 'urgent' ? 'selected' : ''}>urgent</option>
               </select>
               <button class="apply-status">Apply</button>
               <button class="delete-btn">Delete</button>
@@ -915,15 +931,15 @@ And the HTML section header change on line 11:
         removedTbody.innerHTML = '<tr><td colspan="5" class="empty" style="text-align:center;">No removed records.</td></tr>';
       } else {
         removedTbody.innerHTML = removedEntries.map(e => `
-          <tr data-ref="${e.ref}">
-            <td class="cell-ref" data-label="Ref" >${e.ref}</td>
-            <td class="cell-fullname" data-label="Full Name" >${e.fullname}</td>
-            <td class="cell-title" data-label="Title" >${e.title}</td>
+          <tr data-ref="${esc(e.ref)}">
+            <td class="cell-ref" data-label="Ref" >${esc(e.ref)}</td>
+            <td class="cell-fullname" data-label="Full Name" >${esc(e.fullname)}</td>
+            <td class="cell-title" data-label="Title" >${esc(e.title)}</td>
             <td class="cell-note" data-label="Note" >
-              <input class="note-input" data-ref="${e.ref}" value="${e.note || ''}">
+              <input class="note-input" data-ref="${esc(e.ref)}" value="${esc(e.note) || ''}">
             </td>
             <td class="cell-actions" data-label="Actions">
-              <button class="save-note-btn" data-ref="${e.ref}">Save Note</button>
+              <button class="save-note-btn" data-ref="${esc(e.ref)}">Save Note</button>
             </td>
           </tr>
         `).join('');
@@ -935,7 +951,7 @@ And the HTML section header change on line 11:
         if (reason) payload.note = reason;
         const token = localStorage.getItem('adminToken');
 
-        fetch(`https://production-baranggay-registry.onrender.com/api/entries/${ref}`, {
+        csrfFetch(`https://production-baranggay-registry.onrender.com/api/entries/${ref}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json',
                      'Authorization': `Bearer ${token}`
@@ -962,7 +978,7 @@ And the HTML section header change on line 11:
     // Update only the note field of an entry (used by the removed records section)
     function updateNoteOnServer(ref, newNote) {
       const token = localStorage.getItem('adminToken');
-      fetch(`https://production-baranggay-registry.onrender.com/api/entries/${ref}`, {
+      csrfFetch(`https://production-baranggay-registry.onrender.com/api/entries/${ref}`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',

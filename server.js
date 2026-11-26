@@ -203,35 +203,78 @@ const conn = mongoose.connection;
 //
 // ============================================================
 
-const issuedTokens = new Set();
+// ==================== CSRF (double-submit cookie) ====================
+function parseCookies(req) {
+  const out = {};
+  for (const part of (req.headers.cookie || '').split(';')) {
+    const i = part.indexOf('=');
+    if (i === -1) continue;
+    const key = part.slice(0, i).trim();
+    if (key) out[key] = decodeURIComponent(part.slice(i + 1).trim());
+  }
+  return out;
+}
 
-app.get('/csrf-token', (req, res) => {            // your client reads data.csrfToken
-  const t = crypto.randomBytes(32).toString('base64url');
-  issuedTokens.add(t);
-  res.json({ csrfToken: t });
+const CSRF_COOKIE = 'XSRF-TOKEN';
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+
+app.get('/csrf-token', (req, res) => {
+  const existing = parseCookies(req)[CSRF_COOKIE];
+  const token = (existing && /^[A-Za-z0-9_-]{43}$/.test(existing))
+    ? existing
+    : crypto.randomBytes(32).toString('base64url');
+
+  res.cookie(CSRF_COOKIE, token, {
+    httpOnly: false,   // JS must be able to read it and echo it back
+    sameSite: 'none',  // Netlify -> Render is cross-site
+    secure: true,      // required with SameSite=None
+    path: '/',
+    maxAge: 60 * 60 * 1000
+  });
+  res.json({ csrfToken: token });
 });
 
 function csrfGuard(req, res, next) {
+  if (SAFE_METHODS.has(req.method)) return next(); // GET/HEAD/OPTIONS are read-only
+
   const origin = req.headers.origin;
   if (origin && !allowedOrigins.includes(origin)
-      && origin !== `http://${req.headers.host}` && origin !== `https://${req.headers.host}`) {
-    return res.status(403).json({ error: 'Invalid CSRF token' });
+      && origin !== `http://${req.headers.host}`
+      && origin !== `https://${req.headers.host}`) {
+    return res.status(403).json({ error: 'Invalid origin' });
   }
-  const token = req.headers['x-csrf-token'];     // matches client's 'X-CSRF-Token'
-  if (!token || !issuedTokens.has(token)) {
+
+  const cookieToken = parseCookies(req)[CSRF_COOKIE];
+  const headerToken = req.headers['x-csrf-token'];
+  if (!cookieToken || !headerToken || cookieToken !== headerToken) {
     return res.status(403).json({ error: 'Invalid CSRF token' });
   }
   next();
 }
 
-function escapeHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-         .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+// ==================== INPUT SANITATION ====================
+// strip HTML/control characters BEFORE storing. Store plain text only;
+// the browser then HTML-encodes on output (see section 2).
+function cleanField(value, maxLen = 1000) {
+  if (value == null) return '';
+  return String(value)
+    .replace(/[\u0000-\u001F\u007F]/g, '') // control characters
+    .replace(/<[^>]*>/g, '')               // strip HTML tags
+    .trim()
+    .slice(0, maxLen);
 }
-function sanitizeText(str) {
-  if (str == null) return '';
-  return escapeHtml(String(str).replace(/<[^>]*>/g, ''));
+
+function cleanEntryBody(body = {}) {
+  return {
+    fullname: cleanField(body.fullname, 100),
+    title:    cleanField(body.title, 1000),
+    category: cleanField(body.category, 100),
+    purok:    cleanField(body.purok, 100),
+    note:     cleanField(body.note, 2000),
+  };
 }
+
+const ALLOWED_STATUSES = new Set(['pending', 'progress', 'released', 'urgent', 'removed']);
 
 app.use(express.static('public'));
 app.use(express.json());
@@ -394,7 +437,7 @@ app.get('/api/entries', csrfGuard, authLimiter, async (req, res) => {
 
        app.post('/api/entries', csrfGuard, authLimiter, async (req, res) => {
          try {
-           const { fullname, title, category, purok } = req.body;
+           const { fullname, title, category, purok } = cleanEntryBody(req.body);
            if (!fullname || !title || !category || !purok) {
              return res.status(400).json({ error: 'Missing required request fields.' });
            }
@@ -446,10 +489,9 @@ app.patch('/api/entries/:ref', csrfGuard, authenticateAdmin, authLimiter, async 
   try {
     const { ref } = req.params;
     const { status, note } = req.body;
-
     const update = {};
-    if (status) update.status = status;
-    if (note !== undefined) update.note = note;
+    if (['pending','progress','released','urgent','removed'].includes(status)) update.status = status;
+    if (note !== undefined) update.note = cleanField(note, 2000);
 
     const entry = await Entry.findOneAndUpdate(
     { ref },

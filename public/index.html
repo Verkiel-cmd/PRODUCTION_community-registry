@@ -10,6 +10,12 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
 </head>
+
+<script type="module">
+  import { csrfFetch } from './csrf.js';
+  window.csrfFetch = csrfFetch;
+</script>
+
 <body>
 
     <header class="site-header">
@@ -116,6 +122,16 @@
 
 
 <script>
+
+  // ==================== OUTPUT ENCODING ====================
+function esc(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
   // `entries` is the source-of-truth list of requests. We persist it to `localStorage`
   // so other pages (like `admin.html`) can read and react to changes.
@@ -227,14 +243,14 @@
     ledgerList.innerHTML = rows.map(e => `
     <li class="ledger-row">
     <div>
-      <div class="entry-ref">${e.ref}</div>
-      <div class="entry-title">${e.title}</div>
-      <div class="entry-meta">${e.category} · ${e.purok} · Filed ${e.date}</div>
+      <div class="entry-ref">${esc(e.ref)}</div>
+      <div class="entry-title">${esc(e.title)}</div>
+      <div class="entry-meta">${esc(e.category)} · ${esc(e.purok)} · Filed ${esc(e.date)}</div>
       
       <!-- THIS LINE BELOW IS THE FIX -->
-      ${e.note ? `<div class="entry-note"><strong>Note:</strong> ${e.note}</div>` : ''}
+      ${esc(e.note ? `<div class="entry-note"><strong>Note:</strong> ${esc(e.note)}</div>` : '')}
     </div>
-    <span class="stamp stamp--${e.status} ${e.ref === justAddedRef ? 'stamp-in' : ''}">${stampLabel[e.status]}</span>
+    <span class="stamp stamp--${esc(e.status)} ${esc(e.ref === justAddedRef ? 'stamp-in' : '')}">${esc(stampLabel[e.status])}</span>
   </li>`).join('') || '<li class="ledger-row"><span class="entry-meta">No entries under this filter yet.</span></li>';
   }
 
@@ -270,7 +286,7 @@
       purok: purok
     };
 
-    fetch('https://production-baranggay-registry.onrender.com/api/entries', {
+    csrfFetch('https://production-baranggay-registry.onrender.com/api/entries', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

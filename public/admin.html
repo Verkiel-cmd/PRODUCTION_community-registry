@@ -6,6 +6,12 @@
   <title>Admin - Service Registry</title>
   <link rel="stylesheet" href="admin.css">
 </head>
+
+<script type="module">
+  import { csrfFetch } from './csrf.js';
+  window.csrfFetch = csrfFetch;
+</script>
+
 <body>
 
 <!--
@@ -160,6 +166,16 @@
 
   <script>
 
+    // ==================== OUTPUT ENCODING ====================
+    function esc(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
 //FUNCTION FOR POPUP
  var popupTimeout = null;
 
@@ -226,7 +242,7 @@
   //}
 
   try {
-    const response = await fetch('https://production-baranggay-registry.onrender.com/api/admin/login', {
+    const response = await csrfFetch('https://production-baranggay-registry.onrender.com/api/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: user, password: pass })
